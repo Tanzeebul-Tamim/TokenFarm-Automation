@@ -189,20 +189,24 @@ alias harvest='source /path/to/venv/bin/activate && python3 /path/to/bot.py'
 
 ```
 TokenFarm/
-├── bot.py
-├── requirements.txt
+├── assets/
 ├── .env
-├── command.txt
+├── .gitignore
+├── bot.py
+├── LICENSE
 ├── log.txt
-└── readme.md
+├── readme.md
+└── requirements.txt
 ```
 
+- `assets/` — Folder containing static resource
+- `.env` — Environment variables (not committed; create your own using `.env.example`)
+- `.gitignore` —  Git ignored files and folders
 - `bot.py` — Main automation script
-- `requirements.txt` — Python dependencies
-- `.env` — Environment variables (not committed; create your own)
-- `command.txt` — Example commands and cron jobs
+- `LICENSE` — Project license (MIT)
 - `log.txt` — Log output (created at runtime)
-- `readme.md` — Project documentation
+- `readme.md` — Project documentation (this file)
+- `requirements.txt` — Python dependencies
 
 ---
 

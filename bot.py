@@ -37,7 +37,7 @@ def run_farm(acc_name):
     options.add_argument(f"--user-data-dir={os.path.join(BASE_PATH, acc_name)}")
     
     # Running 'headless' makes it invisible (no windows pop up). 
-    # options.add_argument("--headless")
+    options.add_argument("--headless")
     
     driver = uc.Chrome(options=options, version_main=143)
     status = "Failed"
