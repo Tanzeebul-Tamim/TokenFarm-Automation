@@ -36,7 +36,7 @@ This project is for educational purposes only. **Automated interaction with web 
 
 ## 📲 Telegram Notification Example
 
-After each run, the bot sends a summary notification to your specified Telegram chat. This message includes the number of accounts processed and the result for each account.
+After each run, the bot sends a summary notification to your specified Telegram chat. This message contains the number of accounts processed, total duration, and the result for each account.
 
 The notification covers the following possible outcomes for each account:
 
@@ -50,7 +50,7 @@ The notification covers the following possible outcomes for each account:
 **Sample Notification:**
 
 <p align="left">
-   <img width=350 src="./assets/notification_sample.JPG" alt="Telegram Notification Screenshot" />
+   <img width=350 src="./assets/tg_notification_sample.JPG" alt="Telegram Notification Screenshot" />
 </p>
 
 - The message uses Markdown formatting for clarity.

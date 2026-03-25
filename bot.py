@@ -115,6 +115,8 @@ def run_farm(acc_name):
 # --- THE MAIN LOOP ---
 results = {}
 
+start_time = time.time()  # --- Start timer ---
+
 notify_user(f"*🚜 STARTING THE TOKEN FARM...*\n📂 Found _{len(ACCOUNTS)}_ accounts in the vault")
 
 for acc in ACCOUNTS:
@@ -123,28 +125,19 @@ for acc in ACCOUNTS:
     print(f"--- 💤 Resting for 15s to stay under the radar ---")
     time.sleep(15)
 
+end_time = time.time()  # --- End timer ---
+total_seconds = int(end_time - start_time)
+minutes, seconds = divmod(total_seconds, 60)
+
 # --- THE FINAL REPORT ---
 
 # Create the message content
-report_header = f"📋 *Report Summary:\n*🚜 Harvested {len(ACCOUNTS)} Accounts\n"
+report_header = f"📋 *Report Summary:*\n\n 🚜 *Harvested:* {len(ACCOUNTS)} Accounts\n⏱️ *Duration:* {minutes}m {seconds}s\n"
 
 # --- Map statuses to report lines with matching emojis ---
 def format_report(acc, status, emoji):
-    text = f"{emoji} {acc}:\n"
-    
-    if status == "Success":
-        text += "Tokens successfully claimed!"
-    elif status == "Already Claimed":
-        text += "Tokens already claimed for today."
-    elif status == "Logged Out":
-        text += "Account has been logged out. Skipping."
-    elif status == "Button Not Found":
-        text += "Claim button not found. Site may have changed."
-    elif status == "Site Unreachable":
-        text += "Site unreachable."
-    else:
-        text += "Unknown status."
-    return text
+    text = f"{emoji} {acc}: "
+    return text + (status if status else "Unknown Status")
 
 report_body = "\n\n".join([
     format_report(acc, status, emoji)
