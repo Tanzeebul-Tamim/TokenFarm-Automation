@@ -60,7 +60,7 @@ def run_farm(acc_name):
         # Check if we are logged out
         login_check = driver.find_elements(By.XPATH, "//*[contains(translate(text(), 'SIGN', 'sign'), 'sign in')]")
         if len(login_check) > 0:
-            notify_user(f"**❌ {acc_name}:**\n: Logged out. Skipping.")
+            notify_user(f"*❌ {acc_name}:*\nLogged out. Skipping.")
             status = "Logged Out"
         else:
             # Look for the Claim button
@@ -71,13 +71,13 @@ def run_farm(acc_name):
             )))
             
             claim_btn.click()
-            notify_user(f"**✅ {acc_name}:**\nTokens claimed!")
+            notify_user(f"*✅ {acc_name}:*\nTokens claimed!")
             status = "Success"
             time.sleep(3) # Let the site save the click
             
     except Exception:
-        notify_user(f"**ℹ️ {acc_name}:**\nButton not found.\n(Maybe already claimed?)")
-        status = "Already Claimed / Not Found"
+        notify_user(f"*ℹ️ {acc_name}:*\nTokens already claimed for today.")
+        status = "Already Claimed"
     
     driver.quit()
     return status
@@ -85,7 +85,7 @@ def run_farm(acc_name):
 # --- THE MAIN LOOP ---
 results = {}
 
-notify_user(f"**🚜 STARTING THE TOKEN FARM...**\n📂 Found _{len(ACCOUNTS)}_ accounts in the vault")
+notify_user(f"*🚜 STARTING THE TOKEN FARM...*\n📂 Found _{len(ACCOUNTS)}_ accounts in the vault")
 
 for acc in ACCOUNTS:
     result = run_farm(acc)
@@ -98,7 +98,7 @@ for acc in ACCOUNTS:
 # Create the message content
 report_header = f"📋 *Report Summary:\n*🚜 Harvested {len(ACCOUNTS)} Accounts\n"
 report_body = "\n\n".join([
-    f"**✅ {acc}:**\nSuccess" if status == "Success" else f"**❌ {acc}:**\n{status}"
+    f"✅ {acc}:\nSuccess" if status == "Success" else f"❌ {acc}:\n{status}"
     for acc, status in results.items()
 ])
 full_message = report_header + "```\n" + report_body + "\n```"

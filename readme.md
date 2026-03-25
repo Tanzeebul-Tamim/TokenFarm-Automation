@@ -8,6 +8,8 @@
 
 This project is for educational purposes only. **Automated interaction with web services may violate Terms of Service.** Use responsibly and in accordance with the terms of service of any platforms you automate.
 
+
+
 ---
 
 ## ✨ Features
@@ -30,6 +32,20 @@ This project is for educational purposes only. **Automated interaction with web 
     - python-dotenv
     - requests
     - (and others listed in `requirements.txt`)
+---
+
+## 📲 Telegram Notification Example
+
+After each run, the bot sends a summary notification to your specified Telegram chat. This message includes the number of accounts processed and the result for each account.
+
+**Sample Notification:**
+
+<p align="left">
+   <img width=350 src="./assets/telegram_bot_notification_sample.JPG" alt="Telegram Notification Screenshot" />
+</p>
+
+- The message uses Markdown formatting for clarity.
+- You will receive this notification in your Telegram app or group as configured in your `.env` file.
 
 ---
 
@@ -239,21 +255,6 @@ acc3: Success
 ==============================
 🎯 FARMING COMPLETE. TOTAL ACCOUNTS PROCESSED: 3
 ```
-
----
-
-## 📲 Telegram Notification Example
-
-After each run, the bot sends a summary notification to your specified Telegram chat. This message includes the number of accounts processed and the result for each account.
-
-**Sample Notification:**
-
-<p align="left">
-   <img width=400 src="./assets/telegram_notification_sample.JPG" alt="Telegram Notification Screenshot" />
-</p>
-
-- The message uses Markdown formatting for clarity.
-- You will receive this notification in your Telegram app or group as configured in your `.env` file.
 
 ---
 
