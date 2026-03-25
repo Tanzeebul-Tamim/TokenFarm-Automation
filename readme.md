@@ -8,8 +8,6 @@
 
 This project is for educational purposes only. **Automated interaction with web services may violate Terms of Service.** Use responsibly and in accordance with the terms of service of any platforms you automate.
 
-
-
 ---
 
 ## ✨ Features
@@ -17,6 +15,7 @@ This project is for educational purposes only. **Automated interaction with web 
 - **Automated Token Claiming:** Iterates through all account profiles and claims tokens if available.
 - **Headless Operation:** Runs Chrome in headless mode for seamless background execution.
 - **Telegram Notifications:** Sends a summary report to a specified Telegram chat after each run.
+- **Error Screenshots:** Automatically captures and saves a screenshot if an error occurs during the claim process for easier troubleshooting.
 - **Configurable via `.env`:** All sensitive and environment-specific settings are managed via a `.env` file.
 - **Cron-Ready:** Example cron jobs provided for scheduled and reboot-based execution.
 
@@ -32,16 +31,26 @@ This project is for educational purposes only. **Automated interaction with web 
     - python-dotenv
     - requests
     - (and others listed in `requirements.txt`)
+
 ---
 
 ## 📲 Telegram Notification Example
 
 After each run, the bot sends a summary notification to your specified Telegram chat. This message includes the number of accounts processed and the result for each account.
 
+The notification covers the following possible outcomes for each account:
+
+- **Success:** Tokens were successfully claimed.
+- **Logged Out:** The account was not logged in and was skipped.
+- **Already Claimed:** The tokens have already been claimed for a specific account for that day.
+- **Button Not Found:** The claim button was not found (the site layout may have changed).
+- **Site Unreachable:** The website could not be reached (network error, downtime, or invalid URL).
+- **Other Errors:** Any other unexpected issue occurred during the process.
+
 **Sample Notification:**
 
 <p align="left">
-   <img width=350 src="./assets/telegram_bot_notification_sample.JPG" alt="Telegram Notification Screenshot" />
+   <img width=350 src="./assets/notification_sample.JPG" alt="Telegram Notification Screenshot" />
 </p>
 
 - The message uses Markdown formatting for clarity.
@@ -80,6 +89,7 @@ pip install -r requirements.txt
 Rename the `.env.example` file in the project root to `.env`. All the following values can be found in the [`.env.example`](./.env.example) file:
 
 - `BASE_PATH`: Path to your Chrome profiles (e.g., `~/.Profiles/`)
+- `SS_PATH`: Path to your Screenshot folder (e.g., `~/screenshots/`)
 - `CLAIM_URL`: The URL of the web application you're using to claim tokens from
 - `BOT_FATHER_TOKEN`: Telegram bot token for sending notifications
 - `USER_INFO_BOT_ID`: Telegram chat/user ID to receive notifications
@@ -163,13 +173,13 @@ crontab -l
 
 - For **testing visually** (seeing browser windows), make sure to:
     - Add or keep `DISPLAY=:0` in your cron or shell command (if running in a desktop environment).
-    - **Comment out the headless mode line** in your [_`bot.py`_](./bot.py#L40) script:
+    - **Comment out the headless mode line** in your [_`bot.py`_](./bot.py#L51) script:
         ```python
         # options.add_argument("--headless")
         ```
 - For **background/production runs** (no popups):
     - Remove `DISPLAY=:0` from your command.
-    - Ensure the headless mode line is **uncommented** in your [_`bot.py`_](./bot.py#L40) script:
+    - Ensure the headless mode line is **uncommented** in your [_`bot.py`_](./bot.py#L51) script:
         ```python
         options.add_argument("--headless")
         ```
@@ -217,7 +227,7 @@ TokenFarm/
 
 - `assets/` — Folder containing static resource
 - `.env` — Environment variables (not committed; create your own using `.env.example`)
-- `.gitignore` —  Git ignored files and folders
+- `.gitignore` — Git ignored files and folders
 - `bot.py` — Main automation script
 - `LICENSE` — Project license (MIT)
 - `log.txt` — Log output (created at runtime)

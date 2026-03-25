@@ -9,3 +9,6 @@ env/
 # Ignore Python's temporary cache files
 __pycache__/
 *.py[cod]
+
+# Ignore Logs
+log.txt
