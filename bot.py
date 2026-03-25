@@ -26,10 +26,19 @@ ACCOUNTS = [
 # Sort them alphabetically so the run is predictable
 ACCOUNTS.sort()
 
-print(f"📂 Found {len(ACCOUNTS)} accounts in the vault: {ACCOUNTS}")
+# Define the notification function
+
+def notify_user(text):
+    url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
+    try:
+        requests.post(url, json={"chat_id": ID, "text": text, "parse_mode": "Markdown"})
+        print(text)
+    except Exception as e:
+        print(f"Telegram failed: {e}")
 
 #-------------------------------------------------
 
+# Define the main function
 def run_farm(acc_name):
     print(f"\n🚀 Starting harvest for: {acc_name}")
     
@@ -51,7 +60,7 @@ def run_farm(acc_name):
         # Check if we are logged out
         login_check = driver.find_elements(By.XPATH, "//*[contains(translate(text(), 'SIGN', 'sign'), 'sign in')]")
         if len(login_check) > 0:
-            print(f"❌ {acc_name} is logged out. Skipping.")
+            notify_user(f"**❌ {acc_name}:**\n: Logged out. Skipping.")
             status = "Logged Out"
         else:
             # Look for the Claim button
@@ -62,12 +71,12 @@ def run_farm(acc_name):
             )))
             
             claim_btn.click()
-            print(f"✅ Tokens claimed for {acc_name}!")
+            notify_user(f"**✅ {acc_name}:**\nTokens claimed!")
             status = "Success"
             time.sleep(3) # Let the site save the click
             
     except Exception:
-        print(f"ℹ️ {acc_name}: Button not found. (Maybe already claimed?)")
+        notify_user(f"**ℹ️ {acc_name}:**\nButton not found.\n(Maybe already claimed?)")
         status = "Already Claimed / Not Found"
     
     driver.quit()
@@ -76,7 +85,8 @@ def run_farm(acc_name):
 # --- THE MAIN LOOP ---
 results = {}
 
-print("🚜 STARTING THE TOKEN FARM...")
+notify_user(f"**🚜 STARTING THE TOKEN FARM...**\n📂 Found _{len(ACCOUNTS)}_ accounts in the vault")
+
 for acc in ACCOUNTS:
     result = run_farm(acc)
     results[acc] = result
@@ -86,17 +96,12 @@ for acc in ACCOUNTS:
 # --- THE FINAL REPORT ---
 
 # Create the message content
-report_header = f"🚜 *Harvested: {len(ACCOUNTS)} Accounts*\n"
-report_body = "\n".join([f"✅ {acc}: Success" if status else f"❌ {acc}: Failed" for acc, status in results.items()])
+report_header = f"📋 *Report Summary:\n*🚜 Harvested {len(ACCOUNTS)} Accounts\n"
+report_body = "\n\n".join([
+    f"**✅ {acc}:**\nSuccess" if status == "Success" else f"**❌ {acc}:**\n{status}"
+    for acc, status in results.items()
+])
 full_message = report_header + "```\n" + report_body + "\n```"
 
-# Define the sender function
-def send_telegram(text):
-    url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
-    try:
-        requests.post(url, json={"chat_id": ID, "text": text, "parse_mode": "Markdown"})
-    except Exception as e:
-        print(f"Telegram failed: {e}")
-
 # Fire it off!
-send_telegram(full_message)
+notify_user(full_message)
