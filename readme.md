@@ -15,7 +15,7 @@ This project is for educational purposes only. **Automated interaction with web 
 - **Automated Token Claiming:** Iterates through all account profiles and claims tokens if available.
 - **Headless Operation:** Runs Chrome in headless mode for seamless background execution.
 - **Telegram Notifications:** Sends a summary report to a specified Telegram chat after each run.
-- **Error Screenshots:** Automatically captures and saves a screenshot if an error occurs during the claim process for easier troubleshooting.
+- **Error Screenshots:** Automatically captures a screenshot on failure, saves it locally for records, and attaches it directly to the Telegram error notification for instant troubleshooting.
 - **Configurable via `.env`:** All sensitive and environment-specific settings are managed via a `.env` file.
 - **Cron-Ready:** Example cron jobs provided for scheduled and reboot-based execution.
 
@@ -148,7 +148,7 @@ pip install -r requirements.txt
 Rename the `.env.example` file in the project root to `.env`. All the following values can be found in the [`.env.example`](./.env.example) file:
 
 - `BASE_PATH`: Path to your Chrome profiles (e.g., `~/.Profiles/`)
-- `SS_PATH`: Path to your Screenshot folder (e.g., `~/screenshots/`)
+- `SS_PATH`: Path where the screenshots are saved before uploading them to Telegram (e.g., `~/screenshots/`)
 - `CLAIM_URL`: The URL of the web application you're using to claim tokens from
 - `BOT_FATHER_TOKEN`: Telegram bot token for sending notifications
 - `USER_INFO_BOT_ID`: Telegram chat/user ID to receive notifications

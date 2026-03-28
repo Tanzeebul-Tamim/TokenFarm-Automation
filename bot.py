@@ -32,10 +32,19 @@ ACCOUNTS.sort()
 # Define the notification function
 
 
-def notify_user(text):
-    url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
+def notify_user(text, photo_path=None):
     try:
-        requests.post(url, json={"chat_id": ID, "text": text, "parse_mode": "Markdown"})
+        if photo_path and os.path.exists(photo_path):
+            # API endpoint for photos
+            url = f"https://api.telegram.org/bot{TOKEN}/sendPhoto"
+            with open(photo_path, 'rb') as photo:
+                payload = {"chat_id": ID, "caption": text, "parse_mode": "Markdown"}
+                files = {"photo": photo}
+                requests.post(url, data=payload, files=files)
+        else:
+            # Standard message endpoint
+            url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
+            requests.post(url, json={"chat_id": ID, "text": text, "parse_mode": "Markdown"})
         print(text)
     except Exception as e:
         print(f"Telegram failed: {e}")
@@ -132,22 +141,33 @@ def run_farm(acc_name):
                 except Exception as e:
                     # --- Button not found or not clickable ---
                     emoji, status = "⚠️", "Button Not Found"
+
                     # --- Screenshot on failure ---
                     os.makedirs("screenshots", exist_ok=True)
                     driver.save_screenshot(screenshot_path)
+                    
+                    # Pass the screenshot_path here
                     notify_user(
-                        f"*{emoji} {acc_name}:*\nClaim button not found. Site may have changed.\n\n*Screenshot saved:*\n```{screenshot_path}```\n\n💎 *Available Balance:* {balance}"
+                        f"*{emoji} {acc_name}:*\nClaim button not found. Site may have changed.\n\n💎 *Available Balance:* {balance}",
+                        photo_path=screenshot_path
                     )
+
     except Exception as e:
         # --- Catch-all for unexpected errors ---
         emoji, status = "🚫", "Site Unreachable"
+
         # --- Screenshot on failure ---
         os.makedirs("screenshots", exist_ok=True)
         if "driver" in locals() and driver:
             driver.save_screenshot(screenshot_path)
-        notify_user(
-            f"*{emoji} {acc_name}:*\nSite Unreachable: {str(e)}. Screenshot saved: {screenshot_path}"
-        )
+            
+            # Pass the screenshot_path here
+            notify_user(
+                f"*{emoji} {acc_name}:*\nCritical Error: {str(e)}", 
+                photo_path=screenshot_path
+            )
+        else:
+            notify_user(f"*{emoji} {acc_name}:*\nSite Unreachable: {str(e)}")
     finally:
         if driver: driver.quit()
 
@@ -188,14 +208,14 @@ minutes, seconds = divmod(total_seconds, 60)
 # Create the message content
 report_header = f"📋 *Report Summary:*\n\n 🚜 *Harvested:* {len(ACCOUNTS)} Accounts\n⏱️ *Duration:* {minutes}m {seconds}s\n"
 
-
 # --- Map statuses to report lines with matching emojis ---
 def format_report(acc, status, emoji, balance):
-    return f"{emoji} {acc}: {status if status else "Unknown Status"} [💎 {balance}]"
+    display_status = status if status else "Unknown Status"
+    return f"{emoji} {acc}: {display_status} [💎 {balance}]"
 
-
+# Update the list comprehension to pass all 3 values from the results tuple
 report_body = "\n".join(
-    [format_report(acc, status, emoji) for acc, (status, emoji) in results.items()]
+    [format_report(acc, val[0], val[1], val[2]) for acc, val in results.items()]
 )
 
 full_message = report_header + "```\n" + report_body + "\n```"
