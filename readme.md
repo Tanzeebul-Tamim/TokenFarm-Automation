@@ -245,13 +245,13 @@ crontab -l
 
 - For **testing visually** (seeing browser windows), make sure to:
     - Add or keep `DISPLAY=:0` in your cron or shell command (if running in a desktop environment).
-    - **Comment out the headless mode line** in your [_`bot.py`_](./bot.py#L62) script:
+    - **Comment out the headless mode line** in your [_`bot.py`_](./bot.py#L74) script:
         ```python
         # options.add_argument("--headless")
         ```
 - For **background/production runs** (no popups):
     - Remove `DISPLAY=:0` from your command.
-    - Ensure the headless mode line is **uncommented** in your [_`bot.py`_](./bot.py#L62) script:
+    - Ensure the headless mode line is **uncommented** in your [_`bot.py`_](./bot.py#L74) script:
         ```python
         options.add_argument("--headless")
         ```

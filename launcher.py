@@ -34,7 +34,7 @@ def launch_profile(acc_name):
 
     try:
         # Launching without the "detach" option to avoid the error
-        driver = uc.Chrome(options=options, version_main=143)
+        driver = uc.Chrome(options=options, version_main=147)
         driver.get(URL)
         drivers.append(driver) # Store it to keep it alive
         print(f"✅ {acc_name} is active.")

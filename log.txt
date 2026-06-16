@@ -20,4 +20,7 @@ acc1: Success
 acc2: Success
 acc3: Success
 ==============================
-🎯 FARMING COMPLETE. TOTAL ACCOUNTS PROCESSED: 3
+🎯 FARMING COMPLETE. TOTAL ACCOUNTS PROCESSED: 3Traceback (most recent call last):
+  File "/home/tanzeebul-tamim/TokenFarm/bot.py", line 4, in <module>
+    from dotenv import load_dotenv
+ModuleNotFoundError: No module named 'dotenv'

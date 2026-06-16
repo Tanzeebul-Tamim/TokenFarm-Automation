@@ -22,7 +22,8 @@ ID = os.getenv("USER_INFO_BOT_ID")  # your UserInfoBot ID here
 # Automatically get all folder names inside that directory
 # We skip hidden files (starting with '.') and common system files
 ACCOUNTS = [
-    f for f in os.listdir(BASE_PATH)
+    f
+    for f in os.listdir(BASE_PATH)
     if os.path.isdir(os.path.join(BASE_PATH, f)) and not f.startswith(".")
 ]
 
@@ -37,14 +38,16 @@ def notify_user(text, photo_path=None):
         if photo_path and os.path.exists(photo_path):
             # API endpoint for photos
             url = f"https://api.telegram.org/bot{TOKEN}/sendPhoto"
-            with open(photo_path, 'rb') as photo:
+            with open(photo_path, "rb") as photo:
                 payload = {"chat_id": ID, "caption": text, "parse_mode": "Markdown"}
                 files = {"photo": photo}
                 requests.post(url, data=payload, files=files)
         else:
             # Standard message endpoint
             url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
-            requests.post(url, json={"chat_id": ID, "text": text, "parse_mode": "Markdown"})
+            requests.post(
+                url, json={"chat_id": ID, "text": text, "parse_mode": "Markdown"}
+            )
         print(text)
     except Exception as e:
         print(f"Telegram failed: {e}")
@@ -65,14 +68,14 @@ def kill_chrome_zombies():
 def run_farm(acc_name):
     print(f"\n🚀 Starting harvest for: {acc_name}")
     options = uc.ChromeOptions()
-    options.add_argument(f"--user-data-dir={os.path.join(BASE_PATH, acc_name)}")    
-    
+    options.add_argument(f"--user-data-dir={os.path.join(BASE_PATH, acc_name)}")
+
     # Running 'headless' makes it invisible (no windows pop up).
     options.add_argument("--headless")
-    
+
     driver = None  # Initialize as None so 'finally' doesn't crash
-    status = "Failed" # Default as 'Failed'
-    balance = "???" # Default if not found
+    status = "Failed"  # Default as 'Failed'
+    balance = "Error"  # Default if 'Error'
     emoji = "❓"  # --- Default emoji ---
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")  # timestamp for screenshot
     screenshot_path = (
@@ -82,10 +85,23 @@ def run_farm(acc_name):
     try:
         # Wrap the creation of the driver specifically
         try:
-            driver = uc.Chrome(options=options, version_main=143)
+            driver = uc.Chrome(options=options, version_main=147)
         except Exception as e:
-            print(f"❌ Failed to initialize Chrome for {acc_name}: {e}")
-            return "Driver Crash", "💀", "N/A"
+            # --- Handle the specific "Session Not Created" / "Connection" error ---
+            error_msg = str(e)
+            if (
+                "session not created" in error_msg.lower()
+                or "not reachable" in error_msg.lower()
+            ):
+                emoji, status = "🚫", "Session Crash"
+            else:
+                emoji, status = "❌", "Driver Error"
+
+            notify_user(
+                f"*{emoji} {acc_name}:*\n{status}. Couldn't connect to Chrome."
+            )
+
+            return status, emoji, balance
 
         driver.get(URL)
 
@@ -96,6 +112,7 @@ def run_farm(acc_name):
         login_check = driver.find_elements(
             By.XPATH, "//*[contains(translate(text(), 'SIGN', 'sign'), 'sign in')]"
         )
+
         if len(login_check) > 0:
             emoji, status = "🔴", "Logged Out"
             notify_user(
@@ -103,38 +120,42 @@ def run_farm(acc_name):
             )
         else:
             # Extract Balance
-            try:
-                # Target the span inside the credit border div
-                token_xpath = "//div[contains(@class, 'bg-credit-border')]//span[contains(@class, 'text-gray-950')]"
-                balance_el = driver.find_element(By.XPATH, token_xpath)
-                balance = balance_el.text
-            except:
-                balance = "Error"
+            # Target the span inside the credit border div
+            token_xpath = "//div[contains(@class, 'bg-credit-border')]//span[contains(@class, 'text-gray-950')]"
+            balance_el = driver.find_element(By.XPATH, token_xpath)
+            balance = balance_el.text
 
             # Check if already claimed for today (look for the 'Claimed for today!' message)
             claimed_today = driver.find_elements(
-                By.XPATH, "//p[contains(text(), 'Claimed for today!')]"
+                By.XPATH, "//p[contains(text(), 'Claimed today')]"
             )
             if len(claimed_today) > 0:
                 emoji, status = "🟡", "Already Claimed"
-                notify_user(f"*{emoji} {acc_name}:*\nTokens already claimed for today.\n\n💎 *Available Balance:* {balance}")
+                notify_user(
+                    f"*{emoji} {acc_name}:*\nTokens already claimed for today.\n\n💎 *Available Balance:* {balance}"
+                )
             else:
                 try:
                     # Look for the Claim button
                     wait = WebDriverWait(driver, 15)
                     # This looks for a button that contains 'Claim' AND has the specific 'indigo-600' class
+                    print("starting")
                     claim_btn = wait.until(
                         EC.element_to_be_clickable(
                             (
                                 By.XPATH,
-                                "//button[contains(@class, 'bg-indigo-600') and contains(., 'Claim')]",
+                              "//button[contains(@class, 'bg-indigo-600') and (contains(., 'Claim Tokens') or contains(., 'Claim'))]"
                             )
                         )
                     )
+                    print("done")
 
                     claim_btn.click()
                     emoji, status = "🟢", "Success"
-                    notify_user(f"*{emoji} {acc_name}:*\nTokens successfully claimed!\n\n💎 *New Balance:* {balance}")
+                    balance += 200
+                    notify_user(
+                        f"*{emoji} {acc_name}:*\nTokens successfully claimed!\n\n💎 *New Balance:* {balance}"
+                    )
                     time.sleep(
                         3
                     )  # Let the site save the click (short sleep after click is OK)
@@ -145,53 +166,61 @@ def run_farm(acc_name):
                     # --- Screenshot on failure ---
                     os.makedirs("screenshots", exist_ok=True)
                     driver.save_screenshot(screenshot_path)
-                    
+
                     # Pass the screenshot_path here
                     notify_user(
-                        f"*{emoji} {acc_name}:*\nClaim button not found. Site may have changed.\n\n💎 *Available Balance:* {balance}",
-                        photo_path=screenshot_path
+                        f"{emoji} Claim button not found. Site may have changed.\nTerminating all processes!",
+                        photo_path=screenshot_path,
                     )
 
     except Exception as e:
         # --- Catch-all for unexpected errors ---
-        emoji, status = "🚫", "Site Unreachable"
+        emoji, status = "❌", "Site Unreachable"
 
         # --- Screenshot on failure ---
         os.makedirs("screenshots", exist_ok=True)
         if "driver" in locals() and driver:
             driver.save_screenshot(screenshot_path)
-            
+
             # Pass the screenshot_path here
             notify_user(
-                f"*{emoji} {acc_name}:*\nCritical Error: {str(e)}", 
-                photo_path=screenshot_path
+                f"*{emoji} {acc_name}:*\nCritical Error: {str(e)}",
+                photo_path=screenshot_path,
             )
         else:
-            notify_user(f"*{emoji} {acc_name}:*\nSite Unreachable: {str(e)}")
+            notify_user("🚫 Site Unreachable.\nTerminating all processes!")
     finally:
-        if driver: driver.quit()
+        if driver:
+            driver.quit()
 
     return status, emoji, balance
 
 
 results = {}
+total_farm_balance = 0  # --- Initialize total balance counter ---
 
 start_time = time.time()  # --- Start timer ---
 
-notify_user(
-    f"*🚜 STARTING THE TOKEN FARM...*\n📂 Found _{len(ACCOUNTS)}_ accounts in the vault"
-)
+notify_user(f"*🚜 STARTING THE TOKEN FARM...*\n" f"*Accounts Found:* {len(ACCOUNTS)}\n")
 
 # --- THE MAIN LOOP ---
 for acc in ACCOUNTS:
     try:
         # Kill any zombies from the previous account before starting a new one
         kill_chrome_zombies()
-        status, emoji, balance = run_farm(acc) 
+        status, emoji, balance = run_farm(acc)
+
+        if status == "Button Not Found" or status == "Site Unreachable":
+            break
+
         results[acc] = (status, emoji, balance)
+
+        if balance and balance.isdigit():
+            total_farm_balance += int(balance)
+
     except Exception as e:
         # This is the 'Safety Net' that keeps the loop moving
-        print(f"🔥 Serious error on {acc}: {e}")
+        notify_user(f"💥 Loop Error\nTerminating all processes!")
         results[acc] = ("Loop Error", "💥", "N/A")
 
     print(f"--- 💤 Resting for 15s to stay under the radar ---")
@@ -205,13 +234,31 @@ minutes, seconds = divmod(total_seconds, 60)
 
 # --- THE FINAL REPORT ---
 
-# Create the message content
-report_header = f"📋 *Report Summary:*\n\n 🚜 *Harvested:* {len(ACCOUNTS)} Accounts\n⏱️ *Duration:* {minutes}m {seconds}s\n"
+report_header = (
+    "📋 *Report Summary:*\n\n"
+    f"🚜 *Harvested:* {len(ACCOUNTS)} Accounts\n"
+    f"💎 *Total Balance:* {total_farm_balance} Tokens\n"
+    f"⏱️ *Duration:* {minutes}m {seconds}s\n"
+    "📊 *Status Key:*\n"
+    "       🟢 Success\n"
+    "       🟡 Already Claimed\n"
+    "       🔴 Logged Out\n"
+    "       🚫 Session Crash\n"
+    "       ❌ Driver Error\n"
+    "\n"
+    "------------------------------------\n"
+)
+
 
 # --- Map statuses to report lines with matching emojis ---
 def format_report(acc, status, emoji, balance):
-    display_status = status if status else "Unknown Status"
-    return f"{emoji} {acc}: {display_status} [💎 {balance}]"
+    display_balance = (
+        f" [💎{balance}]"
+        if (status == "Success" or status == "Already Claimed")
+        else ""
+    )
+    return f"{emoji} {acc}{display_balance}"
+
 
 # Update the list comprehension to pass all 3 values from the results tuple
 report_body = "\n".join(
