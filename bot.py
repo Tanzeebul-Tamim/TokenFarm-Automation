@@ -19,6 +19,14 @@ URL = os.getenv("CLAIM_URL")  # website url
 TOKEN = os.getenv("BOT_FATHER_TOKEN")  # your BotFather token here
 ID = os.getenv("USER_INFO_BOT_ID")  # your UserInfoBot ID here
 
+# Selector values can be tweaked from the .env file if the site layout changes.
+BALANCE_CONTAINER_CLASS = os.getenv("BALANCE_CONTAINER_CLASS", "bg-credit-border")
+BALANCE_TEXT_CLASS = os.getenv("BALANCE_TEXT_CLASS", "text-gray-950")
+CLAIM_BUTTON_CLASS = os.getenv("CLAIM_BUTTON_CLASS", "bg-indigo-600")
+CLAIM_BUTTON_TEXT = os.getenv("CLAIM_BUTTON_TEXT", "Claim")
+CLAIMED_STATUS_TEXT = os.getenv("CLAIMED_STATUS_TEXT", "Claimed today")
+LOGIN_TEXT_FRAGMENT = os.getenv("LOGIN_TEXT_FRAGMENT", "sign in")
+
 # Automatically get all folder names inside that directory
 # We skip hidden files (starting with '.') and common system files
 ACCOUNTS = [
@@ -110,7 +118,8 @@ def run_farm(acc_name):
 
         # Check if we are logged out
         login_check = driver.find_elements(
-            By.XPATH, "//*[contains(translate(text(), 'SIGN', 'sign'), 'sign in')]"
+            By.XPATH,
+            f"//*[contains(translate(text(), 'SIGN', 'sign'), '{LOGIN_TEXT_FRAGMENT}')]",
         )
 
         if len(login_check) > 0:
@@ -121,13 +130,15 @@ def run_farm(acc_name):
         else:
             # Extract Balance
             # Target the span inside the credit border div
-            token_xpath = "//div[contains(@class, 'bg-credit-border')]//span[contains(@class, 'text-gray-950')]"
+            token_xpath = (
+                f"//div[contains(@class, '{BALANCE_CONTAINER_CLASS}')]//span[contains(@class, '{BALANCE_TEXT_CLASS}')]"
+            )
             balance_el = driver.find_element(By.XPATH, token_xpath)
             balance = balance_el.text
 
             # Check if already claimed for today (look for the 'Claimed for today!' message)
             claimed_today = driver.find_elements(
-                By.XPATH, "//p[contains(text(), 'Claimed today')]"
+                By.XPATH, f"//p[contains(text(), '{CLAIMED_STATUS_TEXT}')]"
             )
             if len(claimed_today) > 0:
                 emoji, status = "🟡", "Already Claimed"
@@ -144,7 +155,7 @@ def run_farm(acc_name):
                         EC.element_to_be_clickable(
                             (
                                 By.XPATH,
-                              "//button[contains(@class, 'bg-indigo-600') and (contains(., 'Claim Tokens') or contains(., 'Claim'))]"
+                                f"//button[contains(@class, '{CLAIM_BUTTON_CLASS}') and (contains(., '{CLAIM_BUTTON_TEXT}') or contains(., 'Claim'))]",
                             )
                         )
                     )
